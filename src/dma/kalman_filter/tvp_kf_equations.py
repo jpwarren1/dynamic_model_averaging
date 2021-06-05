@@ -50,14 +50,15 @@ def evaluate_pred_variance(x, covar, h):
     """
 
     """
-    inv_pred_variance = np.linalg.inv(np.dot(np.dot(x,covar),x.T) + h)
+    pred_variance = np.dot(np.dot(x,covar),x.T) + h
 
-    return inv_pred_variance
+    return pred_variance
 
-def calculate_gain(x, covar, inv_pred_variance):
+def calculate_gain(x, covar, pred_variance):
     """
 
     """
+    inv_pred_variance = np.linalg.inv(pred_variance)
     kalman_gain = np.dot(np.dot(covar,x.T), inv_pred_variance)
     return kalman_gain
 
@@ -75,3 +76,16 @@ def update_state_var(covar, x, kalman_gain):
     covar = covar - np.dot(kalman_gain, np.dot(x,covar))
     return covar
 
+def calculate_likelihood():
+    """
+
+    """
+    def calculate(pred_variance, error, t):
+
+        inv_pred_variance = np.linalg.inv(pred_variance)
+        likelihood = t*constant - 1/2*np.log(np.linalg.det(pred_variance)) - 1/2* np.dot(np.dot(
+                     error, inv_pred_variance),error)      
+        return likelihood
+
+    constant = -1/2*np.log((2*np.pi))
+    return calculate

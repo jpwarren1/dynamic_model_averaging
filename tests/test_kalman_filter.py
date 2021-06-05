@@ -129,7 +129,7 @@ def test_evaluate_pred_variance():
     h = 7
     out = tvp.evaluate_pred_variance(x, covar, h)
 
-    assert (out == 1/25).all()
+    assert (out == 25).all()
 
     return
 
@@ -140,7 +140,7 @@ def test_evaluate_pred_variance_multivariate(kronecker_x, covar_multi):
 
     out = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
 
-    np.testing.assert_array_almost_equal(out, np.eye(3)*1/3)
+    np.testing.assert_array_almost_equal(out, np.eye(3)*3)
 
     return
 
@@ -149,8 +149,8 @@ def test_calculate_gain():
     """
     x = np.array([[3]])
     covar = np.array([[2]])
-    inv_pred_variance = np.array([[3]])
-    out = tvp.calculate_gain(x, covar, inv_pred_variance)
+    pred_variance = np.array([[1/3]])
+    out = tvp.calculate_gain(x, covar, pred_variance)
 
     assert (out == 18).all()
 
@@ -162,8 +162,8 @@ def test_calculate_gain(kronecker_x, covar_multi):
     h = np.zeros((3,3))
     check = np.kron(np.eye(3),np.ones(3)*1/3).T
 
-    inv_pred_variance = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
-    out = tvp.calculate_gain(kronecker_x, covar_multi, inv_pred_variance)
+    pred_variance = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
+    out = tvp.calculate_gain(kronecker_x, covar_multi, pred_variance)
 
     np.testing.assert_array_almost_equal(out, check)
 
@@ -185,8 +185,8 @@ def test_update_state_multivariate(kronecker_x, covar_multi):
     theta = np.ones(9)*(2/3)
     error = np.ones(3)
 
-    inv_pred_variance = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
-    kalman_gain = tvp.calculate_gain(kronecker_x, covar_multi, inv_pred_variance)
+    pred_variance = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
+    kalman_gain = tvp.calculate_gain(kronecker_x, covar_multi, pred_variance)
     out = tvp.update_state(theta, kalman_gain, error)
 
     np.testing.assert_array_almost_equal(out, np.ones(9))
@@ -216,6 +216,18 @@ def test_update_state_covar_multivariate(kronecker_x,covar_multi):
     out = tvp.update_state_var(covar_multi, kronecker_x, kalman_gain)
 
     np.testing.assert_array_almost_equal(out, check)
+
+    return
+
+def test_likelihood():
+
+    pred_variance = np.eye(3)
+    error = np.ones(3)
+    t = 0 # Taking the constant out of the equation
+    likeli = tvp.calculate_likelihood()
+    l = likeli(pred_variance, error, t)
+
+    assert l == -1.5
 
     return
 
