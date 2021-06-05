@@ -58,7 +58,7 @@ def calculate_gain(x, covar, inv_pred_variance):
     """
 
     """
-    kalman_gain = np.dot(np.dot(covar,x), inv_pred_variance)
+    kalman_gain = np.dot(np.dot(covar,x.T), inv_pred_variance)
     return kalman_gain
 
 def update_state(theta,kalman_gain, error):
