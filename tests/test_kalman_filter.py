@@ -41,6 +41,7 @@ def theta_univariate():
 @pytest.fixture(scope='function')
 def covar_multi():
     covar = np.eye(3)
+    covar = np.kron(np.eye(3), covar)
     return covar
 
 def test_predict_state_var(kronecker_x, coeff_flatten):
@@ -75,6 +76,7 @@ def test_predict_covar_multivariate(covar_multi):
     """
 
     check = np.eye(3)*1/0.9
+    check = np.kron(np.eye(3), check)
     predict_covar_state = tvp.predict_var_covar_state(0.9)
     out = predict_covar_state(covar_multi)
 
@@ -131,17 +133,14 @@ def test_evaluate_pred_variance():
 
     return
 
-def test_evaluate_pred_variance_multivariate():
+def test_evaluate_pred_variance_multivariate(kronecker_x, covar_multi):
     """
     """
-    data = np.array([[3,3,3]])
-    x = np.eye(len(data.T))*data
-    covar = np.eye(3)*2
-    h = np.eye(3)*7
+    h = np.zeros((3,3))
 
-    out = tvp.evaluate_pred_variance(x, covar, h)
+    out = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
 
-    assert (out == np.eye(len(data.T))*(1/25)).all()
+    np.testing.assert_array_almost_equal(out, np.eye(3)*1/3)
 
     return
 
