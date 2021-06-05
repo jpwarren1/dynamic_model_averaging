@@ -41,6 +41,7 @@ def theta_univariate():
 @pytest.fixture(scope='function')
 def covar_multi():
     covar = np.eye(3)
+    covar = np.kron(np.eye(3), covar)
     return covar
 
 def test_predict_state_var(kronecker_x, coeff_flatten):
@@ -75,6 +76,7 @@ def test_predict_covar_multivariate(covar_multi):
     """
 
     check = np.eye(3)*1/0.9
+    check = np.kron(np.eye(3), check)
     predict_covar_state = tvp.predict_var_covar_state(0.9)
     out = predict_covar_state(covar_multi)
 
@@ -131,17 +133,14 @@ def test_evaluate_pred_variance():
 
     return
 
-def test_evaluate_pred_variance_multivariate():
+def test_evaluate_pred_variance_multivariate(kronecker_x, covar_multi):
     """
     """
-    data = np.array([[3,3,3]])
-    x = np.eye(len(data.T))*data
-    covar = np.eye(3)*2
-    h = np.eye(3)*7
+    h = np.zeros((3,3))
 
-    out = tvp.evaluate_pred_variance(x, covar, h)
+    out = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
 
-    assert (out == np.eye(len(data.T))*(1/25)).all()
+    np.testing.assert_array_almost_equal(out, np.eye(3)*1/3)
 
     return
 
@@ -157,22 +156,66 @@ def test_calculate_gain():
 
     return
 
-def test_calculate_gain():
+def test_calculate_gain(kronecker_x, covar_multi):
     """
     """
-    data = np.array([[3,3,3]])
-    x = np.eye(len(data.T))*data
-    covar = np.eye(3)*2
-    inv_pred_variance = np.eye(3)*3
-    out = tvp.calculate_gain(x, covar, inv_pred_variance)
+    h = np.zeros((3,3))
+    check = np.kron(np.eye(3),np.ones(3)*1/3).T
 
-    assert (out == np.eye(3)*18).all()
+    inv_pred_variance = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
+    out = tvp.calculate_gain(kronecker_x, covar_multi, inv_pred_variance)
+
+    np.testing.assert_array_almost_equal(out, check)
 
     return
 
-def test_update_state():
+def test_update_state_univariate():
     #tvp.update_state(theta,kalman_gain, error)
-    kalman_gain = np.eye(3)
-    error = np.array
+    kalman_gain = np.array([1])
+    error = np.array([0.1])
+    theta = 0.9
+    out = tvp.update_state(theta,kalman_gain, error)
+
+    assert out == 1
 
     return
+
+def test_update_state_multivariate(kronecker_x, covar_multi):
+    h = np.zeros((3,3))
+    theta = np.ones(9)*(2/3)
+    error = np.ones(3)
+
+    inv_pred_variance = tvp.evaluate_pred_variance(kronecker_x, covar_multi, h)
+    kalman_gain = tvp.calculate_gain(kronecker_x, covar_multi, inv_pred_variance)
+    out = tvp.update_state(theta, kalman_gain, error)
+
+    np.testing.assert_array_almost_equal(out, np.ones(9))
+
+    return
+
+def test_update_state_covar_uni():
+    kalman_gain = np.array([0.5])
+    x = np.array([1])
+    covar = np.array(0.25)
+    out = tvp.update_state_var(covar,x,kalman_gain)
+
+    assert out == 0.125
+
+    return
+
+def test_update_state_covar_multivariate(kronecker_x,covar_multi):
+    kalman_gain = np.zeros((9,3))
+    kalman_gain[0,0] = 1
+    kalman_gain[3,1] = 1
+    kalman_gain[6,2] = 1
+    check = np.eye(3)
+    check[0,0] = 0
+    check[0,1:] = -1
+    check = np.kron(np.eye(3), check)
+
+    out = tvp.update_state_var(covar_multi, kronecker_x, kalman_gain)
+
+    np.testing.assert_array_almost_equal(out, check)
+
+    return
+
