@@ -219,3 +219,15 @@ def test_update_state_covar_multivariate(kronecker_x,covar_multi):
 
     return
 
+def test_likelihood():
+
+    pred_variance = np.eye(3)
+    error = np.ones(3)
+    t = 0 # Taking the constant out of the equation
+    likeli = tvp.calculate_likelihood()
+    l = likeli(pred_variance, error, t)
+
+    assert l == -1.5
+
+    return
+
