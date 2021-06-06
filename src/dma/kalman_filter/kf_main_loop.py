@@ -9,9 +9,11 @@ def recurisve_kalman_filter(x, y, forgetting_factor, e_persistence):
     tt = len(y)
     # initialise parameter matrix
     # initialise as list so we can use for recording
-    pred = []
-    theta = [initialise_theta(x[0,:], y[0])]
-    covar = [initialise_covar(x)]
+    pred = [] # List for the 1 step ahead prediction
+    theta = [initialise_theta(x[0,:], y[0])] # list for the parameter values
+    covar = [initialise_covar(x)] # list for the covariance values
+    l = [] # list for the likelihood
+    h = np.eye(len(y[0])) # Place holder, we at least know this is positive definite
 
     # initialise closure which accept hyperparameters
     m_error_calc = tvp.calculate_h(e_persistence)
@@ -29,14 +31,14 @@ def recurisve_kalman_filter(x, y, forgetting_factor, e_persistence):
         error_variance = tvp.evaluate_pred_variance(x, covar_cond, h)
 
         # calculate the likelihood
-        l = tvp.calculate_likelihood(error_variance, error)
+        l.append(lik_calc(error_variance, error))
 
         # update
         kalman_gain = tvp.calculate_gain(x[ii], covar_cond, error_variance)
-        theta = tvp.update_state(theta, kalman_gain, error)
-        covar = tvp.update_state_var(covar_cond, x, kalman_gain)
+        theta.append(tvp.update_state(theta, kalman_gain, error))
+        covar.append(tvp.update_state_var(covar_cond, x, kalman_gain))
     
-    return 
+    return pred, l, theta, covar
 
 def initialise_theta(x, y):
     """
