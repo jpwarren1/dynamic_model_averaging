@@ -30,6 +30,16 @@ def test_check_shape_error():
 
     with pytest.raises(ValueError):
         out = ml.check_shape(array)
+    
+    return
 
+def test_initialise_covar():
+    """
+    """
+    x = np.ones(3)
+    out = ml.initialise_covar(x)
+    np.testing.assert_array_almost_equal(out, np.ones((3,3)))
+    
+    return
 
 
