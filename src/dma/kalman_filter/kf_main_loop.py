@@ -22,21 +22,22 @@ def recurisve_kalman_filter(x, y, forgetting_factor, e_persistence):
 
     for ii in range(tt):
         # Predict 
-        pred.append(tvp.predict_state(x[ii], theta[-1])) 
+        pred.append(tvp.predict_state(x[ii:ii+1,:], theta[-1])) 
         covar_cond = covar_calc(covar[-1])
 
         # Evaluate the prediction
-        error = tvp.evaluate_prediction(y, pred)
+        error = tvp.evaluate_prediction(y[ii], pred)
         h = m_error_calc(error, h)
-        error_variance = tvp.evaluate_pred_variance(x, covar_cond, h)
+        error_variance = tvp.evaluate_pred_variance(x[ii:ii+1,:], covar_cond, h)
 
         # calculate the likelihood
         l.append(lik_calc(error_variance, error))
 
-        # update
-        kalman_gain = tvp.calculate_gain(x[ii], covar_cond, error_variance)
-        theta.append(tvp.update_state(theta, kalman_gain, error))
-        covar.append(tvp.update_state_var(covar_cond, x, kalman_gain))
+        # update 
+        # indexing on x to make sure it is a 2d array
+        kalman_gain = tvp.calculate_gain(x[ii:ii+1,:], covar_cond, error_variance)
+        theta.append(tvp.update_state(theta[-1], kalman_gain, error))
+        covar.append(tvp.update_state_var(covar_cond, x[ii:ii+1,:], kalman_gain))
     
     return pred, l, theta, covar
 

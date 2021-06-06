@@ -66,7 +66,10 @@ def update_state(theta,kalman_gain, error):
     """
 
     """
-    theta = theta + np.dot(kalman_gain,error)
+    # The theta array is 1d (vectorised), updating step 2d, avoid
+    # any issues by flattening the updating amount
+    theta = theta + np.dot(kalman_gain,error).flatten()
+    
     return theta
 
 def update_state_var(covar, x, kalman_gain):
