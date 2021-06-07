@@ -26,7 +26,7 @@ def recurisve_kalman_filter(x, y, forgetting_factor, e_persistence):
         covar_cond = covar_calc(covar[-1])
 
         # Evaluate the prediction
-        error = tvp.evaluate_prediction(y[ii], pred)
+        error = tvp.evaluate_prediction(y[ii], pred[-1])
         h = m_error_calc(error, h)
         error_variance = tvp.evaluate_pred_variance(x[ii:ii+1,:], covar_cond, h)
 
