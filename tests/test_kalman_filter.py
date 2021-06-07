@@ -223,9 +223,9 @@ def test_likelihood():
 
     pred_variance = np.eye(3)
     error = np.ones(3)
-    t = 0 # Taking the constant out of the equation
-    likeli = tvp.calculate_likelihood()
-    l = likeli(pred_variance, error, t)
+    # Set n to 0 to remove the constant from the calculation
+    likeli = tvp.calculate_likelihood(0)
+    l = likeli(pred_variance, error)
 
     assert l == -1.5
 

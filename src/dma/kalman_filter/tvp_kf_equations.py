@@ -66,7 +66,10 @@ def update_state(theta,kalman_gain, error):
     """
 
     """
-    theta = theta + np.dot(kalman_gain,error)
+    # The theta array is 1d (vectorised), updating step 2d, avoid
+    # any issues by flattening the updating amount
+    theta = theta + np.dot(kalman_gain,error).flatten()
+    
     return theta
 
 def update_state_var(covar, x, kalman_gain):
@@ -76,16 +79,16 @@ def update_state_var(covar, x, kalman_gain):
     covar = covar - np.dot(kalman_gain, np.dot(x,covar))
     return covar
 
-def calculate_likelihood():
+def calculate_likelihood(n):
     """
 
     """
-    def calculate(pred_variance, error, t):
+    def calculate(pred_variance, error):
 
         inv_pred_variance = np.linalg.inv(pred_variance)
-        likelihood = t*constant - 1/2*np.log(np.linalg.det(pred_variance)) - 1/2* np.dot(np.dot(
+        likelihood = constant - 1/2*np.log(np.linalg.det(pred_variance)) - 1/2* np.dot(np.dot(
                      error, inv_pred_variance),error)      
         return likelihood
 
-    constant = -1/2*np.log((2*np.pi))
+    constant = -n/2*np.log((2*np.pi))
     return calculate
