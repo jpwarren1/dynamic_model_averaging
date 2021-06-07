@@ -1,17 +1,19 @@
 import numpy as np
-from dma.kalman_filter import tvp_kf_equations as tvp
+from dma.kalman_filter import tvp_kf_equations as tvp, create_initialisations as cr
 
-def recurisve_kalman_filter(x, y, forgetting_factor, e_persistence):
+def recurisve_kalman_filter(x, y, e_persistence, forgetting_factor,  **kwargs):
     """
 
     """
 
     tt = len(y)
+    if not 'initialisation' in input.keys():
+        x, y, theta, covar, h = cr.get_init_values(x, y, **kwargs)
     # initialise parameter matrix
     # initialise as list so we can use for recording
     pred = [] # List for the 1 step ahead prediction
-    theta = [initialise_theta(x[0,:], y[0])] # list for the parameter values
-    covar = [initialise_covar(x)] # list for the covariance values
+    theta = [theta] # list for the parameter values
+    covar = [covar] # list for the covariance values
     l = [] # list for the likelihood
     h = np.eye(len(y[0])) # Place holder, we at least know this is positive definite
 
@@ -40,37 +42,3 @@ def recurisve_kalman_filter(x, y, forgetting_factor, e_persistence):
         covar.append(tvp.update_state_var(covar_cond, x[ii:ii+1,:], kalman_gain))
     
     return pred, l, theta, covar
-
-def initialise_theta(x, y):
-    """
-
-    """
-    x = check_shape(x)
-    y = check_shape(y)
-
-    theta = np.linalg.lstsq(x,y, rcond=None)[0]
-    theta.flatten()
-
-    return theta
-
-def initialise_covar(x):
-    """
-
-    """
-    x = check_shape(x)
-    covar = np.outer(x.T,x)
-
-    return covar
-
-def check_shape(array):
-    """
-    """
-    if len(array.shape)==1:
-        array = np.expand_dims(array, axis = 0)
-        return array
-    elif len(array.shape)==2:
-        return array
-    else:
-        raise ValueError('Vectors should be 1 or 2 dimensional {} was provide'.format(array.shape))
-    
-    return
